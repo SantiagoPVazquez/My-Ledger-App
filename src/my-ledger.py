@@ -1,4 +1,4 @@
-# Ledger CLI
+# My implementation of Ledger CLI
 # Santiago Pereyra Vázquez - Dec 2022
 
 import argparse
@@ -50,28 +50,66 @@ def readData(filePath):
         elif line.startswith(" ") == True:
             account = line.split()[0]
             if "$" in line:
-                amount = line.split("$")[1]
+                amount = float(line.split("$")[1].strip().replace(",",""))
             else:
-                amount = 0
+                amount = -float(amount)
 
             # Appending the account name and amount to the last entry
             data[entries]["transactions"].append({
                 "account": account,
                 "amount": amount
             })
+    return data
+
+############### Defining the "sort" function ###############
+def sortData(data):
+    ...
+
+############### Defining the "prices-db" function ###############
+def pricesDatabase(data):
     ...
 
 ############### Defining the "balance" function ###############
-def balanceReport(filePath = "test.txt", sorted = False, prices = None):
-    ...
+def balanceReport(data, sorted = False, prices = None):
+    balanceBook = {}
+    for i in range(len(data)):
+        for j in range(len(data[i]["transactions"])):
+            if data[i]["transactions"][j]["account"] in balanceBook:
+                balanceBook[data[i]["transactions"][j]["account"]] += data[i]["transactions"][j]["amount"]
+            else:
+                balanceBook[data[i]["transactions"][j]["account"]] = data[i]["transactions"][j]["amount"]
+    # Variable to store the total balance
+    sum = 0
+    # List to store the names of the main accounts
+    listOfAccounts = []
+
+    for entry in balanceBook:
+        if entry.split(":")[0] in listOfAccounts:
+            continue
+        else:
+            listOfAccounts.append(entry.split(":")[0])
+    
+    # Create a dictionary (res) to store all the subaccounts tied to a main account and print them with each amount
+    for element in listOfAccounts:
+        res = dict(filter(lambda item: element in item[0], balanceBook.items()))
+        for acc in res:
+            sum += res[acc]
+            print("\t{:^10.2f}\t{}".format(res[acc],acc))
+    # Final line to print the total balance
+    print("------------------------\n","\t{:^10.2f}".format(sum))
 
 ############### Defining the "register" function ###############
-def registerReport(filePath = "test.txt", sorted = False, prices = None):
+def registerReport(data, sorted = False, prices = None):
     ...
 
 ############### Defining the "print" function ###############
-def printReport(filePath = "test.txt", sorted = False, prices = None):
-    ...
+def printReport(data, sorted = False, prices = None):
+    # Main loop to print every main entry from the journal
+    for i in range(len(data)):
+        print(data[i]["entry"])
+        # Secondary loop to print all the transactions for each entry
+        for j in range(len(data[i]["transactions"])):
+            print("\t{:<40}${:^10.2f}\n".format(data[i]["transactions"][j]["account"], data[i]["transactions"][j]["amount"]))
 
 ############### Main ###############
 if __name__ == "__main__":
@@ -111,12 +149,16 @@ if __name__ == "__main__":
     # Executing functions depending on the command
     # Calling the "balance" function
     if parsed_args.command == "bal":
-        balanceReport(parsed_args.file, parsed_args.sort, parsed_args.priceDatabase);
         readData(parsed_args.file[0])
+        balanceReport(data, parsed_args.sort, parsed_args.priceDatabase)
+
     # Calling the "register" function
     elif parsed_args.command == "reg":
-        registerReport(parsed_args.file, parsed_args.sort, parsed_args.priceDatabase);
+        readData(parsed_args.file[0])
+        registerReport(data, parsed_args.sort, parsed_args.priceDatabase)
+
     # Calling the "print" function
     elif parsed_args.command == "print":
-        printReport(parsed_args.file, parsed_args.sort, parsed_args.priceDatabase);
+        readData(parsed_args.file[0])
+        printReport(data, parsed_args.sort, parsed_args.priceDatabase)
     
