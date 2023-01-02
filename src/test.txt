@@ -53,6 +53,6 @@
   Assets:Checking:Business            $ 30.00
   Income:Sales
 
-2011/12/01 Bitcoin trade
+2012/12/01 Bitcoin trade
   Assets:Checking:Business             3 BTC
   Wallet:Bitcoin
